@@ -1,0 +1,39 @@
+import psycopg2
+import pandas as pd
+
+# Database credentials
+db_url = "postgres://tsdbadmin:TigerTe4mUn1te@jb4cnq3gyf.jj7sbwx9ng.tsdb.cloud.timescale.com:33159/tsdb?sslmode=require"
+
+# Connect to the database
+conn = psycopg2.connect(db_url)
+
+# Create a cursor
+cur = conn.cursor()
+
+# Define the query to fetch data for the past 3 months
+query = """
+SELECT bucket, open, high, low, close
+FROM one_min_candle
+WHERE symbol = 'BTC/USD'
+AND bucket >= NOW() - INTERVAL '1 months'
+ORDER BY bucket DESC;
+"""
+
+# Execute the query
+cur.execute(query)
+
+# Fetch the results
+rows = cur.fetchall()
+
+# Convert the results to a pandas DataFrame
+stock_data = pd.DataFrame(rows, columns=['bucket', 'open', 'high', 'low', 'close'])
+
+# Print the DataFrame
+print(stock_data)
+
+# Optionally, save the DataFrame to a CSV file
+stock_data.to_csv('stock_data.csv', index=False)
+
+# Close the cursor and connection
+cur.close()
+conn.close()
